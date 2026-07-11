@@ -18,7 +18,7 @@
 - Fade released artifacts and effects over 300ms.
 - Emit small hearts at about four per second and strong hearts every 900ms while held.
 - Keep Amu character artwork, recording, saving, and mobile optimization out of the first release.
-- End every task with tests, an intentional commit, and a push to `origin/main`.
+- End every task with tests, an intentional commit, and a push to `origin/codex/guardian-heart`.
 
 ---
 
@@ -154,7 +154,7 @@ Expected: one passing test, no TypeScript errors, and a successful Vite producti
 ```bash
 git add package.json pnpm-lock.yaml vite.config.ts tsconfig.json tsconfig.node.json index.html src
 git commit -m "feat: scaffold guardian heart app"
-git push origin main
+git push -u origin codex/guardian-heart
 ```
 
 ---
@@ -267,7 +267,7 @@ Expected: all gesture and state-machine tests pass.
 ```bash
 git add src/gestures tests/fixtures
 git commit -m "feat: add stable hand gesture engine"
-git push origin main
+git push origin codex/guardian-heart
 ```
 
 ---
@@ -357,7 +357,7 @@ export const ARTIFACTS = {
 ```bash
 git add scripts public/models src/models package.json pnpm-lock.yaml
 git commit -m "feat: generate magical artifact models"
-git push origin main
+git push origin codex/guardian-heart
 ```
 
 ---
@@ -433,7 +433,7 @@ Expected: camera lifecycle and result-conversion tests pass.
 ```bash
 git add src/vision
 git commit -m "feat: add private webcam hand tracking"
-git push origin main
+git push origin codex/guardian-heart
 ```
 
 ---
@@ -500,7 +500,7 @@ Expected: conversion tests pass and the GLB imports build successfully.
 ```bash
 git add src/scene src/App.tsx src/styles.css
 git commit -m "feat: anchor rotating artifacts to hands"
-git push origin main
+git push origin codex/guardian-heart
 ```
 
 ---
@@ -566,7 +566,7 @@ Expected: timing tests pass, TypeScript passes, and shaders compile in the produ
 ```bash
 git add src/effects
 git commit -m "feat: add procedural negative heart attacks"
-git push origin main
+git push origin codex/guardian-heart
 ```
 
 ---
@@ -634,7 +634,7 @@ Expected: all unit/component tests pass and the production build succeeds.
 ```bash
 git add src/App.tsx src/styles.css src/ui src/performance
 git commit -m "feat: integrate gesture experience and recovery UI"
-git push origin main
+git push origin codex/guardian-heart
 ```
 
 ---
@@ -701,15 +701,15 @@ Verify in Chrome and Edge at 720p: left/right summon mapping, full 360-degree mo
 ```bash
 git add playwright.config.ts tests/e2e README.md .gitignore
 git commit -m "test: verify guardian heart experience"
-git push origin main
+git push origin codex/guardian-heart
 ```
 
 ---
 
 ## Final Release Checklist
 
-- [ ] `git status -sb` shows `main...origin/main` with no worktree changes.
-- [ ] Every task commit is present on `origin/main`.
+- [ ] `git status -sb` shows `codex/guardian-heart...origin/codex/guardian-heart` with no worktree changes.
+- [ ] Every task commit is present on `origin/codex/guardian-heart`.
 - [ ] Model GLBs contain the required named nodes and stay under size limits.
 - [ ] All automated verification commands pass from a clean install.
 - [ ] Chrome and Edge manual webcam checks pass without uploading any camera data.
