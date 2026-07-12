@@ -49,6 +49,8 @@ export function useHandTracking(
       }
 
       cleanupTracker = () => tracker.close()
+    }).catch(() => {
+      // Camera UI remains usable when model initialization is unavailable.
     })
 
     let cleanupTracker = () => {}

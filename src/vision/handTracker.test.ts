@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 const { createFromOptions, forVisionTasks } = vi.hoisted(() => ({
   createFromOptions: vi.fn(),
@@ -69,5 +71,21 @@ describe('createHandTracker', () => {
         numHands: 2,
       }),
     ])
+  })
+
+  it('ships every local asset referenced by the MediaPipe adapter', () => {
+    const publicDirectory = resolve('public')
+    const assetPaths = [
+      'mediapipe/hand_landmarker.task',
+      'mediapipe/wasm/vision_wasm_internal.js',
+      'mediapipe/wasm/vision_wasm_internal.wasm',
+      'mediapipe/wasm/vision_wasm_module_internal.js',
+      'mediapipe/wasm/vision_wasm_module_internal.wasm',
+      'mediapipe/wasm/vision_wasm_nosimd_internal.js',
+      'mediapipe/wasm/vision_wasm_nosimd_internal.wasm',
+    ]
+
+    expect(assetPaths.every((path) => existsSync(resolve(publicDirectory, path)))).toBe(true)
+    expect(forVisionTasks).not.toHaveBeenCalled()
   })
 })

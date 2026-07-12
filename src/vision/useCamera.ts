@@ -44,10 +44,12 @@ export function useCamera(): CameraController {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const mountedRef = useRef(true)
+  const requestGenerationRef = useRef(0)
   const [status, setStatus] = useState<CameraStatus>('idle')
   const [error, setError] = useState<Error | null>(null)
 
   const stop = useCallback(() => {
+    requestGenerationRef.current += 1
     streamRef.current?.getTracks().forEach((track) => track.stop())
     streamRef.current = null
     if (videoRef.current) videoRef.current.srcObject = null
@@ -58,14 +60,19 @@ export function useCamera(): CameraController {
   }, [])
 
   const start = useCallback(async () => {
+    const requestGeneration = requestGenerationRef.current + 1
+    requestGenerationRef.current = requestGeneration
     streamRef.current?.getTracks().forEach((track) => track.stop())
     streamRef.current = null
+    if (videoRef.current) videoRef.current.srcObject = null
     setStatus('requesting')
     setError(null)
 
+    let acquiredStream: MediaStream | null = null
     try {
       const stream = await navigator.mediaDevices.getUserMedia(VIDEO_CONSTRAINTS)
-      if (!mountedRef.current) {
+      acquiredStream = stream
+      if (!mountedRef.current || requestGeneration !== requestGenerationRef.current) {
         stream.getTracks().forEach((track) => track.stop())
         return
       }
@@ -75,11 +82,20 @@ export function useCamera(): CameraController {
         videoRef.current.srcObject = stream
         await videoRef.current.play()
       }
+      if (!mountedRef.current || requestGeneration !== requestGenerationRef.current) {
+        stream.getTracks().forEach((track) => track.stop())
+        if (streamRef.current === stream) streamRef.current = null
+        if (videoRef.current?.srcObject === stream) videoRef.current.srcObject = null
+        return
+      }
       setStatus('active')
     } catch (cause) {
-      streamRef.current?.getTracks().forEach((track) => track.stop())
-      streamRef.current = null
-      if (mountedRef.current) {
+      acquiredStream?.getTracks().forEach((track) => track.stop())
+      if (streamRef.current === acquiredStream) streamRef.current = null
+      if (videoRef.current?.srcObject === acquiredStream) {
+        videoRef.current.srcObject = null
+      }
+      if (mountedRef.current && requestGeneration === requestGenerationRef.current) {
         setError(asError(cause))
         setStatus(statusFor(cause))
       }
@@ -90,6 +106,7 @@ export function useCamera(): CameraController {
     mountedRef.current = true
     return () => {
       mountedRef.current = false
+      requestGenerationRef.current += 1
       streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
     }

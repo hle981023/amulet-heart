@@ -52,4 +52,38 @@ describe('useHandTracking', () => {
     expect(cancelVideoFrameCallback).toHaveBeenCalledWith(3)
     expect(close).toHaveBeenCalledOnce()
   })
+
+  it('falls back to animation frames and cancels them during cleanup', async () => {
+    let animationCallback: FrameRequestCallback | undefined
+    const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+      animationCallback = callback
+      return 41
+    })
+    const cancelAnimationFrame = vi.fn()
+    vi.stubGlobal('requestAnimationFrame', requestAnimationFrame)
+    vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame)
+    const video = { currentTime: 1 } as HTMLVideoElement
+    detect.mockReturnValue(Object.freeze([]))
+
+    const { unmount } = renderHook(() => useHandTracking(video, true, vi.fn()))
+    await act(async () => {})
+    act(() => animationCallback?.(100))
+
+    expect(detect).toHaveBeenCalledWith(video, 100)
+    unmount()
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(41)
+  })
+
+  it('handles tracker creation failure without an unhandled rejection', async () => {
+    const catchRejection = vi.fn()
+    const trackerPromise = {
+      then: vi.fn().mockReturnValue({ catch: catchRejection }),
+    }
+    createHandTracker.mockReturnValueOnce(trackerPromise)
+
+    renderHook(() => useHandTracking({} as HTMLVideoElement, true, vi.fn()))
+    await act(async () => {})
+
+    expect(catchRejection).toHaveBeenCalledOnce()
+  })
 })
