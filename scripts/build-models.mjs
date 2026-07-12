@@ -28,13 +28,21 @@ globalThis.FileReader ??= class FileReader {
   }
 }
 
-function assignCheckerFacets(geometry) {
+function assignCheckerColors(geometry) {
+  const colors = new Float32Array(geometry.getAttribute('position').count * 3)
+  const pinks = [new THREE.Color(0xf383ad), new THREE.Color(0xffb2c9)]
   const triangles = geometry.getAttribute('position').count / 3
-  geometry.clearGroups()
   for (let triangle = 0; triangle < triangles; triangle += 1) {
     const band = Math.floor(triangle / 72)
-    geometry.addGroup(triangle * 3, 3, (triangle + band) % 2)
+    const color = pinks[(triangle + band) % 2]
+    for (let vertex = 0; vertex < 3; vertex += 1) {
+      const offset = (triangle * 3 + vertex) * 3
+      colors[offset] = color.r
+      colors[offset + 1] = color.g
+      colors[offset + 2] = color.b
+    }
   }
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 }
 
 function makeEgg() {
@@ -42,8 +50,8 @@ function makeEgg() {
   root.name = 'AmuletHeartRoot'
 
   const bodyGeometry = eggGeometry()
-  assignCheckerFacets(bodyGeometry)
-  const body = new THREE.Mesh(bodyGeometry, [materials.blush, materials.rose])
+  assignCheckerColors(bodyGeometry)
+  const body = new THREE.Mesh(bodyGeometry, materials.facetedPink)
   body.name = 'EggBody'
   root.add(body)
 
@@ -153,4 +161,3 @@ async function exportModel(object, path) {
 await mkdir('public/models', { recursive: true })
 await exportModel(makeEgg(), 'public/models/amulet-heart.glb')
 await exportModel(makeLock(), 'public/models/humpty-lock.glb')
-

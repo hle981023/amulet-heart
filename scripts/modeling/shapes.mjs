@@ -45,15 +45,16 @@ export function roundedExtrusion(width, height, depth, radius, bevel = 0.12) {
 }
 
 export function eggGeometry() {
-  const points = []
+  const points = [new THREE.Vector2(0, -1.75)]
   const steps = 30
-  for (let i = 0; i <= steps; i += 1) {
+  for (let i = 1; i < steps; i += 1) {
     const y = -1.75 + (3.5 * i) / steps
     const t = (y + 1.75) / 3.5
     const round = Math.sqrt(Math.max(0, 1 - ((y - 0.03) / 1.79) ** 2))
     const taper = 1.02 - 0.25 * Math.max(0, t - 0.42)
     points.push(new THREE.Vector2(1.34 * round * taper, y))
   }
+  points.push(new THREE.Vector2(0, 1.75))
   const geometry = new THREE.LatheGeometry(points, 36)
   geometry.rotateY(Math.PI / 36)
   return geometry.toNonIndexed()
@@ -104,4 +105,3 @@ export function circularPlacement(count, radius, callback, phase = 0) {
     return callback({ index, angle, x: Math.sin(angle) * radius, z: Math.cos(angle) * radius })
   })
 }
-
