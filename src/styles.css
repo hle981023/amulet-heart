@@ -27,10 +27,45 @@ button {
 }
 
 .app-shell {
+  position: relative;
   display: grid;
   min-height: 100vh;
   place-items: center;
   padding: 1.5rem;
+  overflow: hidden;
+}
+
+.camera-feed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Mirror the preview so it reads like a reflection. */
+  transform: scaleX(-1);
+  background: #05080f;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.app-shell--live .camera-feed {
+  opacity: 1;
+}
+
+.experience-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Match the mirrored preview so artifacts track the on-screen hand. */
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
+.start-card {
+  position: relative;
+  z-index: 1;
 }
 
 .start-card {
