@@ -10,6 +10,7 @@ import {
 } from 'three'
 
 import type { Emission } from './effectSchedule'
+import type { EffectField } from './EffectController'
 import { createHeartGeometry } from './heartGeometry'
 
 const POOL_SIZE = 96
@@ -34,6 +35,7 @@ export type HeartEmitterHandle = Readonly<{
 type HeartEmitterProps = Readonly<{
   /** Caps simultaneously live particles so lower quality allocates fewer. */
   activeCap?: number
+  field: EffectField
 }>
 
 /**
@@ -42,8 +44,10 @@ type HeartEmitterProps = Readonly<{
  * allocates geometry per frame.
  */
 export const HeartEmitter = forwardRef<HeartEmitterHandle, HeartEmitterProps>(
-  function HeartEmitter({ activeCap = POOL_SIZE }, ref) {
+  function HeartEmitter({ activeCap = POOL_SIZE, field }, ref) {
     const meshRef = useRef<InstancedMesh>(null)
+    const coreRef = useRef<InstancedMesh>(null)
+    const trailRef = useRef<InstancedMesh>(null)
     const geometry = useMemo(() => createHeartGeometry(0.18), [])
     const material = useMemo(
       () =>
@@ -56,6 +60,8 @@ export const HeartEmitter = forwardRef<HeartEmitterHandle, HeartEmitterProps>(
         }),
       [],
     )
+    const coreMaterial = useMemo(() => new MeshBasicMaterial({ color: '#ffffff', transparent: true, blending: AdditiveBlending, depthWrite: false }), [])
+    const trailMaterial = useMemo(() => new MeshBasicMaterial({ color: '#ff9bca', transparent: true, blending: AdditiveBlending, depthWrite: false }), [])
     const dummy = useMemo(() => new Object3D(), [])
     const capRef = useRef(activeCap)
     capRef.current = Math.min(activeCap, POOL_SIZE)
@@ -106,7 +112,12 @@ export const HeartEmitter = forwardRef<HeartEmitterHandle, HeartEmitterProps>(
 
     useFrame((_, delta) => {
       const mesh = meshRef.current
-      if (!mesh) return
+      const core = coreRef.current
+      const trail = trailRef.current
+      if (!mesh || !core || !trail) return
+      material.opacity = field.releaseOpacity
+      coreMaterial.opacity = field.releaseOpacity
+      trailMaterial.opacity = field.releaseOpacity * 0.35
 
       let count = 0
       for (const particle of particles) {
@@ -127,19 +138,30 @@ export const HeartEmitter = forwardRef<HeartEmitterHandle, HeartEmitterProps>(
         dummy.scale.setScalar(particle.scale * (0.55 + 0.45 * fade))
         dummy.updateMatrix()
         mesh.setMatrixAt(count, dummy.matrix)
+        dummy.scale.multiplyScalar(0.42)
+        dummy.updateMatrix()
+        core.setMatrixAt(count, dummy.matrix)
+        dummy.position.addScaledVector(particle.velocity, -0.045)
+        dummy.scale.multiplyScalar(1.5)
+        dummy.updateMatrix()
+        trail.setMatrixAt(count, dummy.matrix)
         count += 1
       }
 
       mesh.count = count
       mesh.instanceMatrix.needsUpdate = true
+      core.count = count
+      trail.count = count
+      core.instanceMatrix.needsUpdate = true
+      trail.instanceMatrix.needsUpdate = true
     })
 
     return (
-      <instancedMesh
-        ref={meshRef}
-        args={[geometry, material, POOL_SIZE]}
-        frustumCulled={false}
-      />
+      <group>
+        <instancedMesh ref={trailRef} args={[geometry, trailMaterial, POOL_SIZE]} frustumCulled={false} />
+        <instancedMesh ref={meshRef} args={[geometry, material, POOL_SIZE]} frustumCulled={false} />
+        <instancedMesh ref={coreRef} args={[geometry, coreMaterial, POOL_SIZE]} frustumCulled={false} />
+      </group>
     )
   },
 )

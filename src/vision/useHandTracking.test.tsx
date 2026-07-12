@@ -75,15 +75,44 @@ describe('useHandTracking', () => {
   })
 
   it('handles tracker creation failure without an unhandled rejection', async () => {
-    const catchRejection = vi.fn()
-    const trackerPromise = {
-      then: vi.fn().mockReturnValue({ catch: catchRejection }),
-    }
-    createHandTracker.mockReturnValueOnce(trackerPromise)
-
-    renderHook(() => useHandTracking({} as HTMLVideoElement, true, vi.fn()))
+    createHandTracker.mockRejectedValueOnce(new Error('model unavailable'))
+    const video = {} as HTMLVideoElement
+    const onHands = vi.fn()
+    const { result } = renderHook(() => useHandTracking(video, true, onHands))
     await act(async () => {})
+    expect(result.current.status).toBe('error')
+    expect(result.current.error).toBe('model unavailable')
+  })
 
-    expect(catchRejection).toHaveBeenCalledOnce()
+  it('recreates the tracker when retry is requested', async () => {
+    createHandTracker
+      .mockRejectedValueOnce(new Error('first failure'))
+      .mockResolvedValueOnce({ detect, close })
+    const video = { currentTime: 1 } as HTMLVideoElement
+    const { result } = renderHook(() => useHandTracking(video, true, vi.fn()))
+    await act(async () => {})
+    expect(result.current.status).toBe('error')
+    act(() => result.current.retry())
+    await act(async () => {})
+    expect(createHandTracker).toHaveBeenCalledTimes(2)
+    expect(result.current.status).toBe('ready')
+  })
+
+  it('reports inference errors but continues scheduling future frames', async () => {
+    const callbacks = new Map<number, VideoFrameRequestCallback>()
+    let id = 0
+    const video = {
+      currentTime: 1,
+      requestVideoFrameCallback: vi.fn((cb: VideoFrameRequestCallback) => { callbacks.set(++id, cb); return id }),
+      cancelVideoFrameCallback: vi.fn(),
+    } as unknown as HTMLVideoElement
+    detect.mockImplementationOnce(() => { throw new Error('inference failed') }).mockReturnValueOnce([])
+    const { result } = renderHook(() => useHandTracking(video, true, vi.fn()))
+    await act(async () => {})
+    act(() => callbacks.get(1)?.(100, {} as VideoFrameCallbackMetadata))
+    expect(result.current.status).toBe('error')
+    video.currentTime = 2
+    act(() => callbacks.get(2)?.(110, {} as VideoFrameCallbackMetadata))
+    expect(detect).toHaveBeenCalledTimes(2)
   })
 })

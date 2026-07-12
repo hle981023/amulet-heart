@@ -20,12 +20,25 @@ export function DebugOverlay({ snapshot, quality }: DebugOverlayProps) {
   return (
     <div className="debug-overlay" aria-hidden="true">
       <svg className="debug-overlay__points" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {snapshot.hands?.flatMap((hand, handIndex) =>
+          hand.landmarks.map((point, landmarkIndex) => (
+            <circle
+              key={`${handIndex}-${landmarkIndex}`}
+              data-debug-landmark
+              cx={point.x * 100}
+              cy={point.y * 100}
+              r={0.55}
+              fill={handIndex === 0 ? '#7cf5d2' : '#ffd166'}
+            />
+          )),
+        )}
         {POINTS.map(([key, color]) => {
           const point = snapshot[key] as Vec3 | undefined
           if (!point) return null
           return (
             <circle
               key={key}
+              {...(key === 'effectOrigin' ? { 'data-debug-origin': true } : {})}
               cx={point.x * 100}
               cy={point.y * 100}
               r={1.4}

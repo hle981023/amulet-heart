@@ -1,11 +1,15 @@
 import type { GestureKind } from '../gestures/types'
 import type { CameraStatus as CameraStatusValue } from '../vision/useCamera'
+import type { TrackerStatus } from '../vision/useHandTracking'
 
 type CameraStatusProps = Readonly<{
   status: CameraStatusValue
   gesture: GestureKind
   onStart: () => void
   onRetry: () => void
+  trackerStatus: TrackerStatus
+  trackerError?: string
+  onTrackerRetry: () => void
 }>
 
 const GESTURE_COPY: Partial<Record<GestureKind, string>> = {
@@ -39,8 +43,24 @@ export function CameraStatus({
   gesture,
   onStart,
   onRetry,
+  trackerStatus,
+  trackerError,
+  onTrackerRetry,
 }: CameraStatusProps) {
   if (status === 'active') {
+    if (trackerStatus === 'loading' || trackerStatus === 'idle') {
+      return <div className="gesture-banner" role="status">손 인식 모델을 불러오는 중…</div>
+    }
+    if (trackerStatus === 'error') {
+      return (
+        <section className="status-card">
+          <p className="status-card__error" role="alert">
+            손 인식 모델을 시작하지 못했습니다. {trackerError ?? ''}
+          </p>
+          <button type="button" onClick={onTrackerRetry}>손 인식 다시 시도</button>
+        </section>
+      )
+    }
     const copy = GESTURE_COPY[gesture]
     if (!copy) return null
     const fire = FIRE_GESTURES.has(gesture)

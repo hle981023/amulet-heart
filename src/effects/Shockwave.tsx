@@ -46,7 +46,7 @@ export function Shockwave({ field }: { field: EffectField }) {
 
     mesh.visible = true
     mesh.scale.setScalar(0.2 + t * MAX_SCALE)
-    material.opacity = (1 - t) * 0.8
+    material.opacity = (1 - t) * 0.8 * field.releaseOpacity
   })
 
   return (

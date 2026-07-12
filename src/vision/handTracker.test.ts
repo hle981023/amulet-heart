@@ -12,7 +12,7 @@ vi.mock('@mediapipe/tasks-vision', () => ({
   HandLandmarker: { createFromOptions },
 }))
 
-import { createHandTracker } from './handTracker'
+import { createHandTracker, trackerAssetUrls } from './handTracker'
 
 describe('createHandTracker', () => {
   beforeEach(() => {
@@ -87,5 +87,12 @@ describe('createHandTracker', () => {
 
     expect(assetPaths.every((path) => existsSync(resolve(publicDirectory, path)))).toBe(true)
     expect(forVisionTasks).not.toHaveBeenCalled()
+  })
+
+  it('builds MediaPipe URLs from a non-root base path', () => {
+    expect(trackerAssetUrls('/guardian-heart/')).toEqual({
+      model: '/guardian-heart/mediapipe/hand_landmarker.task',
+      wasm: '/guardian-heart/mediapipe/wasm',
+    })
   })
 })

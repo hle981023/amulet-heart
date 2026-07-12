@@ -2,6 +2,23 @@ export type SceneViewport = Readonly<{ width: number; height: number }>
 
 export type NormalizedPoint = Readonly<{ x: number; y: number; z: number }>
 
+export function projectCoverPoint(
+  point: NormalizedPoint,
+  source: SceneViewport,
+  container: SceneViewport,
+): NormalizedPoint {
+  const scale = Math.max(container.width / source.width, container.height / source.height)
+  const drawnWidth = source.width * scale
+  const drawnHeight = source.height * scale
+  const cropX = (drawnWidth - container.width) / 2
+  const cropY = (drawnHeight - container.height) / 2
+  return {
+    x: ((1 - point.x) * drawnWidth - cropX) / container.width,
+    y: (point.y * drawnHeight - cropY) / container.height,
+    z: point.z,
+  }
+}
+
 /**
  * The scene renders in an orthographic space whose extents match the mirrored
  * 16:9 camera preview, so normalized landmark coordinates translate directly

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   bigHeart,
   fingerHeart,
+  fusionHands,
   leftIndexOnly,
   noHands,
   rightIndexOnly,
@@ -31,5 +32,18 @@ describe('classifyHands', () => {
     expect(classifyHands([right, left]).kind).toBe('both-ready')
     expect(classifyHands([left]).kind).toBe('egg-ready')
     expect(classifyHands([right]).kind).toBe('lock-ready')
+  })
+
+  it('uses mirrored screen X and valid MediaPipe coordinates for ownership', () => {
+    const rawRight = leftIndexOnly()
+    const rawLeft = rightIndexOnly()
+    expect(rawRight.landmarks.every(({ x, y }) => x >= 0 && x <= 1 && y >= 0 && y <= 1)).toBe(true)
+    expect(classifyHands([rawRight])).toMatchObject({ kind: 'egg-ready', leftIndex: { x: 0.75 } })
+    expect(classifyHands([rawLeft])).toMatchObject({ kind: 'lock-ready', rightIndex: { x: 0.25 } })
+  })
+
+  it('emits fusion readiness from palm-normalized index-tip distance', () => {
+    expect(classifyHands(fusionHands()).kind).toBe('fusing')
+    expect(classifyHands([leftIndexOnly(), rightIndexOnly()]).kind).toBe('both-ready')
   })
 })

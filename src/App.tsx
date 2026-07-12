@@ -16,6 +16,8 @@ const IDLE_SNAPSHOT: GestureSnapshot = {
   stableKind: 'idle',
   enteredAtMs: 0,
   changed: false,
+  fusionProgress: 0,
+  releaseProgress: 0,
 }
 
 const now = () =>
@@ -30,6 +32,7 @@ export function App() {
   const machineRef = useRef(createGestureMachine())
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null)
   const [snapshot, setSnapshot] = useState<GestureSnapshot>(IDLE_SNAPSHOT)
+  const [sourceSize, setSourceSize] = useState({ width: 16, height: 9 })
   const debug = useMemo(debugEnabled, [])
 
   const active = camera.status === 'active'
@@ -48,7 +51,7 @@ export function App() {
     setSnapshot(machineRef.current.update(observation, now()))
   }, [])
 
-  useHandTracking(videoEl, active, handleHands)
+  const tracker = useHandTracking(videoEl, active, handleHands)
 
   return (
     <main className={`app-shell${active ? ' app-shell--live' : ''}`}>
@@ -58,10 +61,14 @@ export function App() {
         muted
         playsInline
         aria-hidden="true"
+        onLoadedMetadata={(event) => {
+          const video = event.currentTarget
+          if (video.videoWidth && video.videoHeight) setSourceSize({ width: video.videoWidth, height: video.videoHeight })
+        }}
       />
 
       {active ? (
-        <ExperienceCanvas snapshot={snapshot} quality={quality} />
+        <ExperienceCanvas snapshot={snapshot} quality={quality} sourceSize={sourceSize} />
       ) : null}
 
       {active && debug ? (
@@ -73,6 +80,9 @@ export function App() {
         gesture={snapshot.stableKind}
         onStart={() => void camera.start()}
         onRetry={() => void camera.retry()}
+        trackerStatus={tracker.status}
+        trackerError={tracker.error}
+        onTrackerRetry={tracker.retry}
       />
     </main>
   )

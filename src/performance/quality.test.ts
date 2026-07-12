@@ -3,10 +3,18 @@ import { describe, expect, it } from 'vitest'
 import { nextQuality, QUALITY } from './quality'
 
 describe('nextQuality', () => {
-  it('reduces bloom before removing model fidelity', () => {
+  it('reduces measured scene quality as frame rate falls', () => {
     expect(nextQuality('high', 24)).toBe('medium')
     expect(nextQuality('medium', 19)).toBe('low')
-    expect(QUALITY.low.modelDetail).toBe(1)
+    expect(QUALITY.low.particlePool).toBeLessThan(QUALITY.high.particlePool)
+  })
+
+  it('defines only measurable scene controls and changes each one across the ladder', () => {
+    expect(Object.keys(QUALITY.high).sort()).toEqual(['dpr', 'glowIntensity', 'lighting', 'particlePool'])
+    expect(QUALITY.high.dpr).toBeGreaterThan(QUALITY.low.dpr)
+    expect(QUALITY.high.glowIntensity).toBeGreaterThan(QUALITY.low.glowIntensity)
+    expect(QUALITY.high.lighting).toBe(true)
+    expect(QUALITY.low.lighting).toBe(false)
   })
 
   it('holds steady inside the stable band', () => {

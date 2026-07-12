@@ -21,10 +21,11 @@ const LANDMARKER_OPTIONS = {
 } as const
 
 function optionsFor(delegate: 'GPU' | 'CPU'): HandLandmarkerOptions {
+  const { model } = trackerAssetUrls(import.meta.env.BASE_URL)
   return {
     ...LANDMARKER_OPTIONS,
     baseOptions: {
-      modelAssetPath: '/mediapipe/hand_landmarker.task',
+      modelAssetPath: model,
       delegate,
     },
   }
@@ -46,7 +47,7 @@ function convertResult(result: HandLandmarkerResult): readonly HandSample[] {
 }
 
 export async function createHandTracker(): Promise<HandTracker> {
-  const vision = await FilesetResolver.forVisionTasks('/mediapipe/wasm')
+  const vision = await FilesetResolver.forVisionTasks(trackerAssetUrls(import.meta.env.BASE_URL).wasm)
   let landmarker: HandLandmarker
 
   try {
@@ -69,4 +70,12 @@ export async function createHandTracker(): Promise<HandTracker> {
       landmarker.close()
     },
   })
+}
+
+export function trackerAssetUrls(baseUrl: string) {
+  const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
+  return {
+    model: `${base}mediapipe/hand_landmarker.task`,
+    wasm: `${base}mediapipe/wasm`,
+  }
 }

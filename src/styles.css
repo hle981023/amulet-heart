@@ -58,8 +58,7 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
-  /* Match the mirrored preview so artifacts track the on-screen hand. */
-  transform: scaleX(-1);
+  /* Projection mirrors and object-fit crops landmarks in scene space. */
   pointer-events: none;
 }
 

@@ -25,6 +25,7 @@ export type GestureObservation = Readonly<{
   rightIndex?: Vec3
   effectOrigin?: Vec3
   confidence: number
+  hands?: readonly HandSample[]
 }>
 
 export type GestureSnapshot = GestureObservation &
@@ -32,5 +33,6 @@ export type GestureSnapshot = GestureObservation &
     stableKind: GestureKind
     enteredAtMs: number
     changed: boolean
+    fusionProgress: number
+    releaseProgress: number
   }>
-

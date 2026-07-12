@@ -12,6 +12,8 @@ const snapshot = (
   stableKind,
   enteredAtMs: 0,
   changed,
+  fusionProgress: stableKind === 'armed' ? 1 : 0,
+  releaseProgress: stableKind === 'releasing' ? 0.5 : 0,
 })
 
 describe('advanceEffectSchedule', () => {
@@ -50,5 +52,12 @@ describe('advanceEffectSchedule', () => {
     s = advanceEffectSchedule(s, snapshot('releasing', true), 400)
     expect(s.spawn).toEqual([])
     expect(s.beamBurst).toBe(false)
+  })
+
+  it('distinguishes bounded small and strong signature attack entries', () => {
+    const small = advanceEffectSchedule(createEffectSchedule(), snapshot('finger-heart', true), 0)
+    expect(small).toMatchObject({ beam: 'small', flash: false, trailBursts: 1, sparkleBursts: 1, fragmentBursts: 0 })
+    const strong = advanceEffectSchedule(createEffectSchedule(), snapshot('big-heart', true), 0)
+    expect(strong).toMatchObject({ beam: 'strong', flash: true, trailBursts: 2, sparkleBursts: 2, fragmentBursts: 1, shockwave: true })
   })
 })

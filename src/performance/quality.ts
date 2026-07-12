@@ -2,19 +2,18 @@ export type QualityLevel = 'high' | 'medium' | 'low'
 
 export type QualityProfile = Readonly<{
   particlePool: number
-  shadowResolution: number
-  bloomResolution: number
-  /** Model geometry detail is never reduced, so gestures stay accurate. */
-  modelDetail: number
+  dpr: number
+  lighting: boolean
+  glowIntensity: number
 }>
 
 /** Ordered from lowest to highest fidelity for level comparisons. */
 export const QUALITY_ORDER: readonly QualityLevel[] = ['low', 'medium', 'high']
 
 export const QUALITY: Record<QualityLevel, QualityProfile> = {
-  high: { particlePool: 96, shadowResolution: 1024, bloomResolution: 1, modelDetail: 1 },
-  medium: { particlePool: 64, shadowResolution: 512, bloomResolution: 0.6, modelDetail: 1 },
-  low: { particlePool: 32, shadowResolution: 0, bloomResolution: 0, modelDetail: 1 },
+  high: { particlePool: 96, dpr: 1.5, lighting: true, glowIntensity: 1 },
+  medium: { particlePool: 64, dpr: 1, lighting: true, glowIntensity: 0.7 },
+  low: { particlePool: 32, dpr: 0.75, lighting: false, glowIntensity: 0.4 },
 }
 
 const DOWNGRADE_TO_MEDIUM_FPS = 27

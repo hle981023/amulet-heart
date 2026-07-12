@@ -39,8 +39,10 @@ export function BeamBurst({ field }: { field: EffectField }) {
 
     const entry = Math.min(ageRef.current / ENTRY_MS, 1)
     const punch = entry < 1 ? entry * (1 - entry) * 4 : 0
-    material.opacity = field.firing ? Math.max(punch, HELD_GLOW) : 0
-    mesh.scale.set(1, 3 + entry * 4, 1)
+    const strong = field.attackKind === 'strong'
+    material.color.set(strong ? '#fff4b8' : '#bdf3ff')
+    material.opacity = (field.firing ? Math.max(punch, HELD_GLOW) : 0) * field.releaseOpacity * field.glowIntensity
+    mesh.scale.set(strong ? 1.8 : 1, 3 + entry * (strong ? 7 : 4), 1)
   })
 
   return (

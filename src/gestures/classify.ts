@@ -46,7 +46,10 @@ const heartObservation = (
 export const classifyHands = (hands: HandSample[]): GestureObservation => {
   const visible = hands
     .filter((hand) => hand.landmarks.length >= 21)
-    .sort((a, b) => a.landmarks[INDEX_TIP].x - b.landmarks[INDEX_TIP].x)
+    .sort(
+      (a, b) =>
+        1 - a.landmarks[INDEX_TIP].x - (1 - b.landmarks[INDEX_TIP].x),
+    )
 
   if (visible.length >= 2) {
     const [left, right] = visible
@@ -67,7 +70,7 @@ export const classifyHands = (hands: HandSample[]): GestureObservation => {
       rightSpan > 1.2 &&
       Math.abs(leftSpan - rightSpan) < 0.5
 
-    if (isLargeHeart) return heartObservation('big-heart', left, right)
+    if (isLargeHeart) return { ...heartObservation('big-heart', left, right), hands: visible }
 
     const isCompactHeart =
       leftSpan < 0.4 &&
@@ -78,7 +81,7 @@ export const classifyHands = (hands: HandSample[]): GestureObservation => {
         scale,
       ) < 0.75
 
-    if (isCompactHeart) return heartObservation('finger-heart', left, right)
+    if (isCompactHeart) return { ...heartObservation('finger-heart', left, right), hands: visible }
   }
 
   const summons = visible.filter(isIndexOnly)
@@ -89,25 +92,28 @@ export const classifyHands = (hands: HandSample[]): GestureObservation => {
     const leftIndex = left.landmarks[INDEX_TIP]
     const rightIndex = right.landmarks[INDEX_TIP]
 
+    const fusionReady = normalizedDistance(leftIndex, rightIndex, (palmScale(left.landmarks) + palmScale(right.landmarks)) / 2) < 0.75
     return {
-      kind: 'both-ready',
+      kind: fusionReady ? 'fusing' : 'both-ready',
       leftIndex,
       rightIndex,
       effectOrigin: midpoint(leftIndex, rightIndex),
       confidence: confidenceOf([left, right]),
+      hands: visible,
     }
   }
 
   if (summons.length === 1) {
     const hand = summons[0]
     const index = hand.landmarks[INDEX_TIP]
-    const isScreenLeft = index.x < 0.5
+    const isScreenLeft = 1 - index.x < 0.5
 
     return {
       kind: isScreenLeft ? 'egg-ready' : 'lock-ready',
       ...(isScreenLeft ? { leftIndex: index } : { rightIndex: index }),
       effectOrigin: centerOf([index]),
       confidence: hand.score,
+      hands: visible,
     }
   }
 
