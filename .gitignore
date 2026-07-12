@@ -1,2 +1,19 @@
 .superpowers/
 .worktrees/
+
+# Dependencies and build output
+node_modules/
+dist/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Vite-generated JS emitted next to config during tsc -b
+vite.config.js
+vite.config.d.ts
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
