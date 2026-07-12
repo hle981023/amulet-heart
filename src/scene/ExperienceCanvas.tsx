@@ -4,9 +4,10 @@ import { Suspense } from 'react'
 
 import { EffectController } from '../effects/EffectController'
 import type { GestureSnapshot } from '../gestures/types'
+import type { QualityLevel } from '../performance/quality'
 import { Artifact } from './Artifact'
 
-export type QualityLevel = 'high' | 'medium' | 'low'
+export type { QualityLevel }
 
 type ExperienceCanvasProps = Readonly<{
   snapshot: GestureSnapshot

@@ -3,7 +3,7 @@ import { useMemo, useRef } from 'react'
 import { Vector3 } from 'three'
 
 import type { GestureSnapshot } from '../gestures/types'
-import type { QualityLevel } from '../scene/ExperienceCanvas'
+import { QUALITY, type QualityLevel } from '../performance/quality'
 import { SCENE_VIEWPORT, screenToWorld } from '../scene/screenToWorld'
 import { BeamBurst } from './BeamBurst'
 import { advanceEffectSchedule, createEffectSchedule } from './effectSchedule'
@@ -31,6 +31,7 @@ const nowMsFrom = (elapsedSeconds: number) => elapsedSeconds * 1000
  */
 export function EffectController({
   snapshot,
+  quality = 'high',
 }: {
   snapshot: GestureSnapshot
   quality?: QualityLevel
@@ -69,7 +70,7 @@ export function EffectController({
 
   return (
     <group>
-      <HeartEmitter ref={emitterRef} />
+      <HeartEmitter ref={emitterRef} activeCap={QUALITY[quality].particlePool} />
       <BeamBurst field={field} />
       <Shockwave field={field} />
     </group>

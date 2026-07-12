@@ -31,13 +31,18 @@ export type HeartEmitterHandle = Readonly<{
   spawn(kind: Emission, origin: Vector3): void
 }>
 
+type HeartEmitterProps = Readonly<{
+  /** Caps simultaneously live particles so lower quality allocates fewer. */
+  activeCap?: number
+}>
+
 /**
  * Pooled additive heart projectiles. `spawn` activates a free slot; a shared
  * instanced mesh renders every live particle, so a long-held pose never
  * allocates geometry per frame.
  */
-export const HeartEmitter = forwardRef<HeartEmitterHandle>(
-  function HeartEmitter(_props, ref) {
+export const HeartEmitter = forwardRef<HeartEmitterHandle, HeartEmitterProps>(
+  function HeartEmitter({ activeCap = POOL_SIZE }, ref) {
     const meshRef = useRef<InstancedMesh>(null)
     const geometry = useMemo(() => createHeartGeometry(0.18), [])
     const material = useMemo(
@@ -52,6 +57,8 @@ export const HeartEmitter = forwardRef<HeartEmitterHandle>(
       [],
     )
     const dummy = useMemo(() => new Object3D(), [])
+    const capRef = useRef(activeCap)
+    capRef.current = Math.min(activeCap, POOL_SIZE)
     const particles = useMemo<Particle[]>(
       () =>
         Array.from({ length: POOL_SIZE }, () => ({
@@ -70,7 +77,13 @@ export const HeartEmitter = forwardRef<HeartEmitterHandle>(
       ref,
       () => ({
         spawn(kind, origin) {
-          const slot = particles.find((particle) => !particle.active)
+          let slot: Particle | undefined
+          for (let index = 0; index < capRef.current; index += 1) {
+            if (!particles[index].active) {
+              slot = particles[index]
+              break
+            }
+          }
           if (!slot) return
 
           const strong = kind === 'strong'
