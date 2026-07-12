@@ -2,9 +2,9 @@ import { OrthographicCamera } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Suspense } from 'react'
 
+import { EffectController } from '../effects/EffectController'
 import type { GestureSnapshot } from '../gestures/types'
 import { Artifact } from './Artifact'
-import { SCENE_VIEWPORT } from './screenToWorld'
 
 export type QualityLevel = 'high' | 'medium' | 'low'
 
@@ -23,7 +23,7 @@ const FUSING_KINDS: ReadonlySet<GestureSnapshot['stableKind']> = new Set([
  * the mirrored camera preview. Artifacts appear wherever the classifier reports
  * a summoning hand, so the scene never depends on MediaPipe internals.
  */
-export function ExperienceCanvas({ snapshot }: ExperienceCanvasProps) {
+export function ExperienceCanvas({ snapshot, quality }: ExperienceCanvasProps) {
   const fusing = FUSING_KINDS.has(snapshot.stableKind)
 
   return (
@@ -46,6 +46,7 @@ export function ExperienceCanvas({ snapshot }: ExperienceCanvasProps) {
           <Artifact kind="lock" point={snapshot.rightIndex} fusing={fusing} />
         ) : null}
       </Suspense>
+      <EffectController snapshot={snapshot} quality={quality} />
     </Canvas>
   )
 }
